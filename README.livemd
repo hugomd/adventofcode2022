@@ -206,3 +206,75 @@ end)
 |> Enum.map(&Day2Scorer2.determine_points/1)
 |> Enum.sum()
 ```
+
+## Day 3: Part 1
+
+```elixir
+day_three_input_url = "https://adventofcode.com/2022/day/3/input"
+
+day_three_input = get_input.(day_three_input_url)
+
+defmodule RuckSack do
+  @priority ~c("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+  def priority(value) do
+    @priority |> Enum.find_index(fn a -> a == value end)
+  end
+
+  def split(rucksack) do
+    halflength = (String.length(rucksack) / 2) |> round
+    {String.slice(rucksack, 0, halflength), String.slice(rucksack, halflength, halflength)}
+  end
+
+  def compare({_, _} = pair) do
+    [a, b] =
+      pair
+      |> Tuple.to_list()
+      |> Enum.map(&String.graphemes/1)
+      |> Enum.map(&MapSet.new/1)
+
+    MapSet.intersection(a, b)
+  end
+end
+
+day_three_input
+|> Enum.map(&RuckSack.split/1)
+|> Enum.map(&RuckSack.compare/1)
+|> Enum.map(&MapSet.to_list/1)
+|> List.flatten()
+|> List.to_charlist()
+|> Enum.map(&RuckSack.priority/1)
+|> Enum.sum()
+```
+
+## Day 3: Part 2
+
+```elixir
+defmodule RuckSack do
+  @priority ~c("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+  def priority(value) do
+    @priority |> Enum.find_index(fn a -> a == value end)
+  end
+
+  def compare([_, _, _] = triple) do
+    [a, b, c] =
+      triple
+      |> Enum.map(&String.graphemes/1)
+      |> Enum.map(&MapSet.new/1)
+
+    MapSet.intersection(a, b) |> MapSet.intersection(c)
+  end
+
+  def compare(_), do: MapSet.new()
+end
+
+day_three_input
+|> Enum.chunk_every(3)
+|> Enum.map(&RuckSack.compare/1)
+|> Enum.map(&MapSet.to_list/1)
+|> List.flatten()
+|> List.to_charlist()
+|> Enum.map(&RuckSack.priority/1)
+|> Enum.sum()
+```
