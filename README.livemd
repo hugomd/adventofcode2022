@@ -12,13 +12,17 @@ Mix.install([
 
 ```elixir
 aoc_session = System.fetch_env!("LB_AOC_SESSION")
-input_url = "https://adventofcode.com/2022/day/1/input"
 
-input =
-  Req.get!(input_url, headers: [cookie: "session=#{aoc_session}"]).body
+get_input = fn url ->
+  Req.get!(url, headers: [cookie: "session=#{aoc_session}"]).body
   |> String.split("\n")
+end
 
-input
+day_one_input_url = "https://adventofcode.com/2022/day/1/input"
+
+day_one_input = get_input.(day_one_input_url)
+
+day_one_input
 |> Enum.chunk_by(fn pack -> pack == "" end)
 |> Enum.filter(fn pack -> pack != [""] end)
 |> Enum.map(fn pack -> Enum.map(pack, &String.to_integer/1) end)
@@ -29,12 +33,176 @@ input
 ## Day 1: Part 2
 
 ```elixir
-input
+day_one_input
 |> Enum.chunk_by(fn pack -> pack == "" end)
 |> Enum.filter(fn pack -> pack != [""] end)
 |> Enum.map(fn pack -> Enum.map(pack, &String.to_integer/1) end)
 |> Enum.map(fn pack -> Enum.sum(pack) end)
 |> Enum.sort(:desc)
 |> Enum.take(3)
+|> Enum.sum()
+```
+
+## Day 2: Part 1
+
+```elixir
+day_two_input_url = "https://adventofcode.com/2022/day/2/input"
+
+day_two_input = get_input.(day_two_input_url)
+
+defmodule Day2Scorer1 do
+  def to_play({_, _} = t),
+    do:
+      t
+      |> Tuple.to_list()
+      |> Enum.map(&to_play/1)
+      |> List.to_tuple()
+
+  def to_play(play) do
+    case play do
+      :A -> :Rock
+      :B -> :Paper
+      :C -> :Scissors
+      :X -> :Rock
+      :Y -> :Paper
+      :Z -> :Scissors
+    end
+  end
+
+  def outcome(game) do
+    case game do
+      {:Rock, :Scissors} -> :loss
+      {:Scissors, :Paper} -> :loss
+      {:Paper, :Rock} -> :loss
+      {:Scissors, :Rock} -> :win
+      {:Rock, :Paper} -> :win
+      {:Paper, :Scissors} -> :win
+      {left, right} when left == right -> :tie
+    end
+  end
+
+  def outcome_points(outcome) do
+    case outcome do
+      :loss -> 0
+      :tie -> 3
+      :win -> 6
+    end
+  end
+
+  def play_points(play) do
+    case play do
+      :Rock -> 1
+      :Paper -> 2
+      :Scissors -> 3
+    end
+  end
+
+  def determine_points(game) do
+    play = to_play(game)
+    {_, your_play} = play
+    outcome = outcome(play)
+
+    outcome_points(outcome) + play_points(your_play)
+  end
+end
+
+day_two_input
+|> Enum.map(fn strat -> String.trim(strat) end)
+|> Enum.map(fn strat -> String.split(strat, " ") end)
+|> Enum.map(fn strat -> Enum.map(strat, &String.to_atom/1) end)
+|> Enum.map(&List.to_tuple/1)
+|> Enum.filter(fn
+  {:""} -> false
+  _ -> true
+end)
+|> Enum.map(&Day2Scorer1.determine_points/1)
+|> Enum.sum()
+```
+
+## Day 2: Part 2
+
+```elixir
+defmodule Day2Scorer2 do
+  def to_play(play) do
+    case play do
+      :A -> :Rock
+      :B -> :Paper
+      :C -> :Scissors
+    end
+  end
+
+  def wanted_outcome(yours) do
+    case yours do
+      :X -> :loss
+      :Y -> :tie
+      :Z -> :win
+    end
+  end
+
+  def select_move(outcome, theirs) do
+    case outcome do
+      :loss -> get_loss(theirs)
+      :tie -> get_tie(theirs)
+      :win -> get_win(theirs)
+    end
+  end
+
+  def get_win(theirs) do
+    case theirs do
+      :Rock -> :Paper
+      :Scissors -> :Rock
+      :Paper -> :Scissors
+    end
+  end
+
+  def get_tie(theirs), do: theirs
+
+  def get_loss(theirs) do
+    case theirs do
+      :Rock -> :Scissors
+      :Scissors -> :Paper
+      :Paper -> :Rock
+    end
+  end
+
+  def outcome_points(outcome) do
+    case outcome do
+      :loss -> 0
+      :tie -> 3
+      :win -> 6
+    end
+  end
+
+  def play_points(play) do
+    case play do
+      :Rock -> 1
+      :Paper -> 2
+      :Scissors -> 3
+    end
+  end
+
+  def determine_points(game) do
+    {their_move, your_move} = game
+    their_play = to_play(their_move)
+
+    wanted_outcome = wanted_outcome(your_move)
+    your_play = select_move(wanted_outcome, their_play)
+
+    outcome_points = outcome_points(wanted_outcome)
+    play_points = play_points(your_play)
+    outcome_points + play_points
+  end
+end
+
+day_two_input
+|> Enum.map(fn strat -> String.trim(strat) end)
+|> Enum.map(fn strat -> String.split(strat, " ") end)
+|> Enum.map(fn strat -> Enum.map(strat, &String.to_atom/1) end)
+|> Enum.map(&List.to_tuple/1)
+|> Enum.filter(fn
+  {:""} -> false
+  _ -> true
+end)
+|> Enum.map(&Day2Scorer2.determine_points/1)
 |> Enum.sum()
 ```
