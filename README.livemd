@@ -6,7 +6,7 @@ Mix.install([
 ])
 ```
 
-## Day 1
+## Day 1: Part 1
 
 <!-- livebook:{"reevaluate_automatically":true} -->
 
@@ -24,4 +24,17 @@ input
 |> Enum.map(fn pack -> Enum.map(pack, &String.to_integer/1) end)
 |> Enum.map(fn pack -> Enum.sum(pack) end)
 |> Enum.max()
+```
+
+## Day 1: Part 2
+
+```elixir
+input
+|> Enum.chunk_by(fn pack -> pack == "" end)
+|> Enum.filter(fn pack -> pack != [""] end)
+|> Enum.map(fn pack -> Enum.map(pack, &String.to_integer/1) end)
+|> Enum.map(fn pack -> Enum.sum(pack) end)
+|> Enum.sort(:desc)
+|> Enum.take(3)
+|> Enum.sum()
 ```
