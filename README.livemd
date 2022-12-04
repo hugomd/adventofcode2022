@@ -1,0 +1,27 @@
+# Advent of Code 2022
+
+```elixir
+Mix.install([
+  {:req, "~> 0.3.2"}
+])
+```
+
+## Day 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
+aoc_session = System.fetch_env!("LB_AOC_SESSION")
+input_url = "https://adventofcode.com/2022/day/1/input"
+
+input =
+  Req.get!(input_url, headers: [cookie: "session=#{aoc_session}"]).body
+  |> String.split("\n")
+
+input
+|> Enum.chunk_by(fn pack -> pack == "" end)
+|> Enum.filter(fn pack -> pack != [""] end)
+|> Enum.map(fn pack -> Enum.map(pack, &String.to_integer/1) end)
+|> Enum.map(fn pack -> Enum.sum(pack) end)
+|> Enum.max()
+```
