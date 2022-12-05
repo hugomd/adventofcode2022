@@ -6,9 +6,7 @@ Mix.install([
 ])
 ```
 
-## Day 1: Part 1
-
-<!-- livebook:{"reevaluate_automatically":true} -->
+## Set up
 
 ```elixir
 aoc_session = System.fetch_env!("LB_AOC_SESSION")
@@ -17,7 +15,13 @@ get_input = fn url ->
   Req.get!(url, headers: [cookie: "session=#{aoc_session}"]).body
   |> String.split("\n")
 end
+```
 
+## Day 1: Part 1
+
+<!-- livebook:{"reevaluate_automatically":true} -->
+
+```elixir
 day_one_input_url = "https://adventofcode.com/2022/day/1/input"
 
 day_one_input = get_input.(day_one_input_url)
@@ -277,4 +281,61 @@ day_three_input
 |> List.to_charlist()
 |> Enum.map(&RuckSack.priority/1)
 |> Enum.sum()
+```
+
+## Day 4: Part 1
+
+```elixir
+day_four_input_url = "https://adventofcode.com/2022/day/4/input"
+
+day_four_input = get_input.(day_four_input_url)
+
+defmodule Assignments do
+  def overlap(input) do
+    {a, b} =
+      input
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn [from, to] -> MapSet.new(Range.new(from, to)) end)
+      |> List.to_tuple()
+
+    MapSet.subset?(a, b) || MapSet.subset?(b, a)
+  end
+end
+
+day_four_input
+|> Enum.flat_map(fn a -> String.split(a, ",") end)
+|> Enum.flat_map(fn a -> String.split(a, ",") end)
+|> Enum.flat_map(fn a -> String.split(a, "-") end)
+|> Enum.filter(fn a -> a != "" end)
+|> Enum.map(&String.to_integer/1)
+|> Enum.chunk_every(4)
+|> Enum.map(&Assignments.overlap/1)
+|> Enum.filter(&Function.identity/1)
+|> Enum.count()
+```
+
+## Day 4: Part 2
+
+```elixir
+defmodule Assignments do
+  def intersect(input) do
+    input
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [from, to] -> MapSet.new(Range.new(from, to)) end)
+    |> then(fn [a, b] -> MapSet.intersection(a, b) end)
+    |> Enum.empty?()
+    |> Kernel.not()
+  end
+end
+
+day_four_input
+|> Enum.flat_map(fn a -> String.split(a, ",") end)
+|> Enum.flat_map(fn a -> String.split(a, ",") end)
+|> Enum.flat_map(fn a -> String.split(a, "-") end)
+|> Enum.filter(fn a -> a != "" end)
+|> Enum.map(&String.to_integer/1)
+|> Enum.chunk_every(4)
+|> Enum.map(&Assignments.intersect/1)
+|> Enum.filter(&Function.identity/1)
+|> Enum.count()
 ```
